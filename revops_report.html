@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Weekly RevOps Update — August 16, 2026</title>
+<style>
+  :root {
+    --bg: #f4f6f8;
+    --card: #ffffff;
+    --ink: #1c2430;
+    --muted: #5c6b7a;
+    --line: #e4e8ed;
+    --header: #152033;
+    --accent: #1f6feb;
+    --watch: #c2410c;
+    --watch-bg: #fff7ed;
+    --watch-bar: #fb923c;
+    --warn: #9a3412;
+    --warn-bg: #fff1e6;
+    --warn-bar: #ea580c;
+    --crit: #9f1239;
+    --crit-bg: #fff1f2;
+    --crit-bar: #e11d48;
+    --ok: #166534;
+    --ok-bg: #f0fdf4;
+    --callout: #eef4ff;
+    --callout-bar: #1f6feb;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+  .page {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 28px 20px 48px;
+  }
+  .masthead {
+    background: var(--header);
+    color: #fff;
+    border-radius: 12px;
+    padding: 22px 26px 20px;
+    margin-bottom: 18px;
+  }
+  .masthead h1 {
+    margin: 0 0 4px;
+    font-size: 22px;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+  }
+  .masthead .date {
+    margin: 0;
+    color: #b8c4d4;
+    font-size: 13px;
+  }
+  .summary {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 22px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 28px;
+    align-items: center;
+  }
+  .summary p {
+    margin: 0;
+    color: var(--ink);
+    font-size: 14.5px;
+  }
+  .summary strong { font-weight: 650; }
+  .legend {
+    margin-left: auto;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+  }
+  .dot-watch { background: var(--watch-bar); }
+  .dot-warn { background: var(--warn-bar); }
+  .dot-crit { background: var(--crit-bar); }
+  h2 {
+    margin: 0 0 10px;
+    font-size: 15px;
+    font-weight: 650;
+    letter-spacing: 0.01em;
+  }
+  .section { margin-bottom: 26px; }
+  .table-wrap {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th, td {
+    padding: 8px 12px;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid var(--line);
+  }
+  th {
+    background: #f7f9fb;
+    color: #3d4d5c;
+    font-size: 11px;
+    font-weight: 650;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+  }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: #fafbfd; }
+  tbody tr.row-watch:hover td { background: #ffedd5; }
+  tbody tr.row-warn:hover td { background: #ffe4cc; }
+  tbody tr.row-critical:hover td { background: #ffe4e6; }
+  .num { white-space: nowrap; }
+  .nowrap { white-space: nowrap; }
+  .deal-link {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .deal-link:hover { text-decoration: underline; }
+  tr.row-watch td:first-child { box-shadow: inset 3px 0 0 var(--watch-bar); }
+  tr.row-warn td:first-child { box-shadow: inset 3px 0 0 var(--warn-bar); }
+  tr.row-critical td:first-child { box-shadow: inset 3px 0 0 var(--crit-bar); }
+  tr.row-watch { background: var(--watch-bg); }
+  tr.row-warn { background: var(--warn-bg); }
+  tr.row-critical { background: var(--crit-bg); }
+  tr.empty td {
+    color: var(--muted);
+    font-style: italic;
+    padding: 16px 12px;
+  }
+  .badge {
+    display: inline-block;
+    min-width: 2.6em;
+    padding: 1px 7px;
+    border-radius: 999px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 650;
+    font-size: 12px;
+    text-align: center;
+  }
+  .badge-ok { background: var(--ok-bg); color: var(--ok); }
+  .badge-watch { background: #ffedd5; color: var(--watch); }
+  .badge-warn { background: #fed7aa; color: var(--warn); }
+  .badge-critical { background: #ffe4e6; color: var(--crit); }
+  .badge-unknown { background: #f1f5f9; color: var(--muted); }
+  .callouts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  @media (max-width: 720px) {
+    .callouts { grid-template-columns: 1fr; }
+    .legend { margin-left: 0; }
+  }
+  .callout {
+    background: var(--callout);
+    border-radius: 10px;
+    padding: 14px 16px 14px 18px;
+    box-shadow: inset 4px 0 0 var(--callout-bar);
+  }
+  .callout h2 { margin-bottom: 6px; }
+  .callout p { margin: 0; color: #334155; }
+  .callout a { color: var(--accent); font-weight: 650; text-decoration: none; }
+  .callout a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+  <div class="page">
+    <header class="masthead">
+      <h1>Weekly RevOps Update</h1>
+      <p class="date">August 16, 2026</p>
+    </header>
+
+    <div class="summary">
+      <p><strong>13</strong> Approved vs <strong>7</strong> Qualified deal regs</p>
+      <p><strong>29</strong> stalled channel deals (&gt;14 days in stage)</p>
+      <div class="legend" aria-label="Urgency legend">
+        <span><i class="dot dot-watch"></i> 14–29d</span>
+        <span><i class="dot dot-warn"></i> 30–89d</span>
+        <span><i class="dot dot-crit"></i> 90d+</span>
+      </div>
+    </div>
+
+    <section class="section">
+      <h2>Deal Regs: Approved, Not Yet Qualified</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Deal Name</th>
+              <th>Days Since Approval</th>
+              <th>Owner</th>
+              <th>Channel Partner</th>
+              <th>Partner Contact Email</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="row-critical"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/40762194343" target="_blank" rel="noopener">Zotec Partners - GuidePoint/Deal Reg</a></td><td class="num"><span class="badge badge-critical">391d</span></td><td>Leo Clougherty</td><td>GuidePoint Security</td><td>lauren.trancik@guidepointsecurity.com</td></tr>
+<tr class="row-critical"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/61873442397" target="_blank" rel="noopener">The Risk Management Foundation of the Harvard Medical Institutions Incorporated - Deal Reg</a></td><td class="num"><span class="badge badge-critical">109d</span></td><td>Leo Clougherty</td><td>GuidePoint Security</td><td>teamflick@guidepointsecurity.com</td></tr>
+<tr class="row-warn"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/62450989678" target="_blank" rel="noopener">Banner Health - Crush Security - Deal Reg</a></td><td class="num"><span class="badge badge-warn">38d</span></td><td>Sam Brigham</td><td>Crush Security</td><td>chris@crush.security.com</td></tr>
+<tr class="row-warn"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/61873085566" target="_blank" rel="noopener">Momentum - Deal Reg</a></td><td class="num"><span class="badge badge-warn">38d</span></td><td>Sam Brigham</td><td>Crush Security</td><td>ali@crushsecurity.com</td></tr>
+<tr class="row-warn"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/62446515719" target="_blank" rel="noopener">Consumer Cellular - Deal Reg</a></td><td class="num"><span class="badge badge-warn">38d</span></td><td>Sam Brigham</td><td>Crush Security</td><td>chris@crushsecurity.com</td></tr>
+<tr class="row-warn"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/61873086234" target="_blank" rel="noopener">Footprint - Deal Reg</a></td><td class="num"><span class="badge badge-warn">38d</span></td><td>Sam Brigham</td><td>Crush Security</td><td>adam@crushsecurity.com</td></tr>
+<tr class="row-watch"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/61873146402" target="_blank" rel="noopener">Motional - Deal Reg</a></td><td class="num"><span class="badge badge-watch">20d</span></td><td>Leo Clougherty</td><td>Defy Security</td><td>aevans@defy.security.com</td></tr>
+<tr class="row-watch"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/63118529596" target="_blank" rel="noopener">BDO - Deal Reg</a></td><td class="num"><span class="badge badge-watch">20d</span></td><td>Jeff Pala</td><td>Crush Security</td><td>marta@crushsecurity.com</td></tr>
+<tr class="row-watch"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/63222264422" target="_blank" rel="noopener">DoorDash - Deal Reg</a></td><td class="num"><span class="badge badge-watch">19d</span></td><td>Sam Brigham</td><td>Crush Security</td><td>adam@crushsecurity.com</td></tr>
+<tr class="row-watch"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/63223210370" target="_blank" rel="noopener">The Society of St. Vincent de Paul - Deal Reg</a></td><td class="num"><span class="badge badge-watch">16d</span></td><td>Amy Cornelius</td><td>Crush Security</td><td>Josh@crushsecurity.com</td></tr>
+<tr class="row-watch"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/63327614384" target="_blank" rel="noopener">Bass Pro Shops - Deal Reg</a></td><td class="num"><span class="badge badge-watch">16d</span></td><td>Amy Cornelius</td><td>CyberOne Security</td><td>joe.bertucci@cyberonesecurity.com</td></tr>
+<tr class=""><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/63434211599" target="_blank" rel="noopener">R1 - Deal Reg</a></td><td class="num"><span class="badge badge-ok">9d</span></td><td>Sam Brigham</td><td>CyberOne Security</td><td>scott.carver@cyberonesecurity.com</td></tr>
+<tr class=""><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/63859409546" target="_blank" rel="noopener">CarGurus - Deal Reg</a></td><td class="num"><span class="badge badge-ok">3d</span></td><td>Sam Brigham</td><td>GuidePoint Security</td><td>NEDealReg@guidepointsecurity.com</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Stalled Channel Deals</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Deal Name</th>
+              <th>Create Date</th>
+              <th>Days in Stage</th>
+              <th>Stage</th>
+              <th>Owner</th>
+              <th>Channel Deal Type</th>
+              <th>Channel Partner</th>
+              <th>Partner Contact Email</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="row-critical"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/35096655960" target="_blank" rel="noopener">Home Depot - Initial Purchase, Discovery/Cribl replacement</a></td><td class="nowrap">Mar 26, 2025</td><td class="num"><span class="badge badge-critical">326d</span></td><td>10% Discovery</td><td>Sam Brigham</td><td>-</td><td>Defy Security</td><td>-</td></tr>
+<tr class="row-critical"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/45096482905" target="_blank" rel="noopener">Alera Group (ST) | use XIam | hit license limit</a></td><td class="nowrap">Oct 02, 2025</td><td class="num"><span class="badge badge-critical">318d</span></td><td>20% Qualification</td><td>Leo Clougherty</td><td>-</td><td>GuidePoint Security</td><td>-</td></tr>
+<tr class="row-critical"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/52087963939" target="_blank" rel="noopener">Keurig Dr.Pepper | Sentinel / CS-NGS | Cribl - 1.7TB raw / 300 gb/day</a></td><td class="nowrap">Dec 19, 2025</td><td class="num"><span class="badge badge-critical">214d</span></td><td>20% Qualification</td><td>Leo Clougherty</td><td>-</td><td>Optiv</td><td>-</td></tr>
+<tr class="row-critical"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/40082648095" target="_blank" rel="noopener">Fresenius Medical Care - New Deal</a></td><td class="nowrap">Jul 12, 2025</td><td class="num"><span class="badge badge-critical">193d</span></td><td>20% Qualification</td><td>Leo Clougherty</td><td>-</td><td>Riptide Technologies</td><td>-</td></tr>
+<tr class="row-critical"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/54315637800" target="_blank" rel="noopener">Herc Rentals</a></td><td class="nowrap">Jan 21, 2026</td><td class="num"><span class="badge badge-critical">193d</span></td><td>20% Qualification</td><td>Sam Brigham</td><td>Partner Influenced</td><td>Crush Security</td><td>-</td></tr>
+<tr class="row-critical"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/55679406727" target="_blank" rel="noopener">PNC - SDPP Active Project</a></td><td class="nowrap">Feb 06, 2026</td><td class="num"><span class="badge badge-critical">191d</span></td><td>20% Qualification</td><td>John Greene</td><td>-</td><td>GuidePoint Security</td><td>-</td></tr>
+<tr class="row-critical"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/57979976300" target="_blank" rel="noopener">Texas Mutual (Cribl Replacement)</a></td><td class="nowrap">Mar 13, 2026</td><td class="num"><span class="badge badge-critical">156d</span></td><td>10% Discovery</td><td>Stephen Poulin</td><td>-</td><td>Data Defense</td><td>-</td></tr>
+<tr class="row-critical"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/57856243603" target="_blank" rel="noopener">Bullhorn | Palo XISAM | Riptide</a></td><td class="nowrap">Mar 11, 2026</td><td class="num"><span class="badge badge-critical">95d</span></td><td>20% Qualification</td><td>Leo Clougherty</td><td>-</td><td>Riptide Technologies</td><td>-</td></tr>
+<tr class="row-warn"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/61390383113" target="_blank" rel="noopener">The Hillman Group - Focus</a></td><td class="nowrap">Jun 22, 2026</td><td class="num"><span class="badge badge-warn">55d</span></td><td>20% Qualification</td><td>Amy Cornelius</td><td>Partner Sourced</td><td>Optiv</td><td>-</td></tr>
+<tr class="row-warn"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/61873442397" target="_blank" rel="noopener">The Risk Management Foundation of the Harvard Medical Institutions Incorporated - Deal Reg</a></td><td class="nowrap">Jun 30, 2026</td><td class="num"><span class="badge badge-warn">47d</span></td><td>0% - Deal Reg</td><td>Leo Clougherty</td><td>Partner Sourced</td><td>GuidePoint Security</td><td>teamflick@guidepointsecurity.com</td></tr>
+<tr class="row-warn"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/61873085260" target="_blank" rel="noopener">SAM - Deal Reg</a></td><td class="nowrap">Jul 01, 2026</td><td class="num"><span class="badge badge-warn">46d</span></td><td>0% - Deal Reg</td><td>Leo Clougherty</td><td>Partner Sourced</td><td>CYPRO</td><td>cameron@cyproit.com</td></tr>
+<tr class="row-warn"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/55827761463" target="_blank" rel="noopener">Battelle - New Deal (Flow + Data Haven)</a></td><td class="nowrap">Feb 09, 2026</td><td class="num"><span class="badge badge-warn">40d</span></td><td>10% Discovery</td><td>Amy Cornelius</td><td>-</td><td>Optiv</td><td>-</td></tr>
+<tr class="row-warn"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/60898990520" target="_blank" rel="noopener">American Express Global Business Travel - Deal Reg</a></td><td class="nowrap">Jun 05, 2026</td><td class="num"><span class="badge badge-warn">39d</span></td><td>20% Qualification</td><td>Sam Brigham</td><td>Partner Sourced</td><td>Crush Security</td><td>josh@crushsecurity.com</td></tr>
+<tr class="row-warn"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/61750327884" target="_blank" rel="noopener">QBE Insurance - Deal Reg - MS Sentinel / Cribl comp</a></td><td class="nowrap">Jun 29, 2026</td><td class="num"><span class="badge badge-warn">39d</span></td><td>20% Qualification</td><td>Stephen Poulin</td><td>Partner Sourced</td><td>Cualified</td><td>brian@cualified.com</td></tr>
+<tr class="row-warn"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/62450989678" target="_blank" rel="noopener">Banner Health - Crush Security - Deal Reg</a></td><td class="nowrap">Jun 18, 2026</td><td class="num"><span class="badge badge-warn">38d</span></td><td>10% Discovery</td><td>Sam Brigham</td><td>Partner Sourced</td><td>Crush Security</td><td>chris@crush.security.com</td></tr>
+<tr class="row-warn"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/62610813991" target="_blank" rel="noopener">University of Delaware</a></td><td class="nowrap">Jul 13, 2026</td><td class="num"><span class="badge badge-warn">34d</span></td><td>10% Discovery</td><td>Kevin Faustich</td><td>-</td><td>Myriad360</td><td>-</td></tr>
+<tr class="row-watch"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/62853283343" target="_blank" rel="noopener">TI Automotive - Realm + Data Haven </a></td><td class="nowrap">Jul 20, 2026</td><td class="num"><span class="badge badge-watch">27d</span></td><td>20% Qualification</td><td>Amy Cornelius</td><td>Partner Sourced</td><td>GuidePoint Security</td><td>derick.compton@guidepointsecurity.com</td></tr>
+<tr class="row-watch"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/61024901790" target="_blank" rel="noopener">Lincare - CS NG SIEM</a></td><td class="nowrap">Jun 10, 2026</td><td class="num"><span class="badge badge-watch">26d</span></td><td>20% Qualification</td><td>Stephen Poulin</td><td>Partner Influenced</td><td>Crush Security</td><td>-</td></tr>
+<tr class="row-watch"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/62939067656" target="_blank" rel="noopener">Majesco</a></td><td class="nowrap">Jul 21, 2026</td><td class="num"><span class="badge badge-watch">26d</span></td><td>10% Discovery</td><td>Kevin Faustich</td><td>-</td><td>SHI International</td><td>-</td></tr>
+<tr class="row-watch"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/61873085566" target="_blank" rel="noopener">Momentum - Deal Reg</a></td><td class="nowrap">Jul 01, 2026</td><td class="num"><span class="badge badge-watch">25d</span></td><td>0% - Deal Reg</td><td>Sam Brigham</td><td>Partner Sourced</td><td>Crush Security</td><td>ali@crushsecurity.com</td></tr>
+<tr class="row-watch"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/62446515719" target="_blank" rel="noopener">Consumer Cellular - Deal Reg</a></td><td class="nowrap">Jul 01, 2026</td><td class="num"><span class="badge badge-watch">25d</span></td><td>0% - Deal Reg</td><td>Sam Brigham</td><td>Partner Sourced</td><td>Crush Security</td><td>chris@crushsecurity.com</td></tr>
+<tr class="row-watch"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/61873086234" target="_blank" rel="noopener">Footprint - Deal Reg</a></td><td class="nowrap">Jul 01, 2026</td><td class="num"><span class="badge badge-watch">25d</span></td><td>0% - Deal Reg</td><td>Sam Brigham</td><td>Partner Sourced</td><td>Crush Security</td><td>adam@crushsecurity.com</td></tr>
+<tr class="row-watch"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/61873146402" target="_blank" rel="noopener">Motional - Deal Reg</a></td><td class="nowrap">Jul 01, 2026</td><td class="num"><span class="badge badge-watch">20d</span></td><td>10% Discovery</td><td>Leo Clougherty</td><td>Partner Sourced</td><td>Defy Security</td><td>aevans@defy.security.com</td></tr>
+<tr class="row-watch"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/63118529596" target="_blank" rel="noopener">BDO - Deal Reg</a></td><td class="nowrap">Jul 24, 2026</td><td class="num"><span class="badge badge-watch">20d</span></td><td>10% Discovery</td><td>Jeff Pala</td><td>Partner Sourced</td><td>Crush Security</td><td>marta@crushsecurity.com</td></tr>
+<tr class="row-watch"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/63222251860" target="_blank" rel="noopener">KBRA</a></td><td class="nowrap">Jul 28, 2026</td><td class="num"><span class="badge badge-watch">19d</span></td><td>0% - Deal Reg</td><td>Kevin Faustich</td><td>-</td><td>Abira</td><td>-</td></tr>
+<tr class="row-watch"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/63222264422" target="_blank" rel="noopener">DoorDash - Deal Reg</a></td><td class="nowrap">Jul 28, 2026</td><td class="num"><span class="badge badge-watch">19d</span></td><td>10% Discovery</td><td>Sam Brigham</td><td>Partner Sourced</td><td>Crush Security</td><td>adam@crushsecurity.com</td></tr>
+<tr class="row-watch"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/63222211494" target="_blank" rel="noopener">Berry Global - Realm Focus (GPS)</a></td><td class="nowrap">Jul 28, 2026</td><td class="num"><span class="badge badge-watch">18d</span></td><td>10% Discovery</td><td>Amy Cornelius</td><td>Partner Sourced</td><td>GuidePoint Security</td><td>Chad.Scott@Guidepointsecurity.com</td></tr>
+<tr class="row-watch"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/63223210370" target="_blank" rel="noopener">The Society of St. Vincent de Paul - Deal Reg</a></td><td class="nowrap">Jul 31, 2026</td><td class="num"><span class="badge badge-watch">16d</span></td><td>10% Discovery</td><td>Amy Cornelius</td><td>Partner Sourced</td><td>Crush Security</td><td>Josh@crushsecurity.com</td></tr>
+<tr class="row-watch"><td><a class="deal-link" href="https://app.hubspot.com/contacts/47829307/record/0-3/63327614384" target="_blank" rel="noopener">Bass Pro Shops - Deal Reg</a></td><td class="nowrap">Jul 31, 2026</td><td class="num"><span class="badge badge-watch">16d</span></td><td>10% Discovery</td><td>Amy Cornelius</td><td>Partner Sourced</td><td>CyberOne Security</td><td>joe.bertucci@cyberonesecurity.com</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="callouts">
+      <aside class="callout">
+        <h2>Resellers Hygiene</h2>
+        <p><a href="https://app.hubspot.com/contacts/47829307/objects/0-2/views/67142806/list" target="_blank" rel="noopener">Resellers list</a> — please confirm all current resellers are on this list and accurately marked.</p>
+      </aside>
+      <aside class="callout">
+        <h2>Meeting Hygiene</h2>
+        <p><a href="https://app.hubspot.com/contacts/47829307/objects/0-47/views/68020096/list" target="_blank" rel="noopener">Meetings list</a> — please update Call and Meeting Type on these records.</p>
+      </aside>
+    </div>
+  </div>
+</body>
+</html>
