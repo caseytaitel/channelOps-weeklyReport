@@ -6,7 +6,7 @@ Every Monday, Isaac needs a Channel Ops snapshot: which deal regs are approved b
 
 ## Current state / What it does
 
-When you run it, the script talks to HubSpot, builds the report, and saves a file named `channelops_report_YYYY-MM-DD.html` (today's date) in this folder. Open that file in a browser, look it over, then drag it into the Slack channel yourself. Posting is not automatic yet.
+When you run it, the script talks to HubSpot, builds the report, and saves a file named `channelops_report_YYYY-MM-DD.html` (today's date) in the `output` folder. Open that file in a browser, look it over, then drag it into the Slack channel yourself. Posting is not automatic yet.
 
 ## How to run it
 
@@ -17,7 +17,7 @@ In PowerShell, from this folder:
 python weekly_report.py
 ```
 
-Then open the new `channelops_report_YYYY-MM-DD.html` file, review it, and drag it into Slack.
+Then open the new file in the `output` folder (`channelops_report_YYYY-MM-DD.html`), review it, and drag it into Slack.
 
 ## Next steps / Known limitations
 

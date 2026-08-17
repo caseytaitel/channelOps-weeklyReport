@@ -15,7 +15,7 @@ USAGE
        HUBSPOT_TOKEN        - HubSpot private app access token (scopes: crm.objects.deals.read,
                                crm.objects.owners.read)
   3. Run: python weekly_report.py
-  4. Open channelops_report_YYYY-MM-DD.html, review, then drag into Slack.
+  4. Open output/channelops_report_YYYY-MM-DD.html, review, then drag into Slack.
 
 ASSUMPTIONS (flagged, not silently baked in - change here if wrong):
   - "Channel partner is known" excludes partner_company == "No Partner - Direct".
@@ -66,6 +66,8 @@ RESELLERS_VIEW_URL = f"https://app.hubspot.com/contacts/{PORTAL_ID}/objects/0-2/
 MEETINGS_VIEW_URL = f"https://app.hubspot.com/contacts/{PORTAL_ID}/objects/0-47/views/68020096/list"
 
 DEAL_RECORD_URL = f"https://app.hubspot.com/contacts/{PORTAL_ID}/record/0-3/{{deal_id}}"
+
+OUTPUT_DIR = "output"
 
 _owner_cache = {}
 
@@ -253,7 +255,7 @@ def _days_badge(days):
         "row-watch": "badge-watch",
         "row-ok": "badge-ok",
     }[cls]
-    return f'<span class="badge {badge}">{days}d</span>'
+    return f'<span class="badge {badge}">{days}</span>'
 
 
 def _format_date(date_str):
@@ -337,6 +339,8 @@ def build_html_report(deal_reg, stalled, now):
     today = now.strftime("%B %d, %Y")
     approved_count = deal_reg["approved_count"]
     qualified_count = deal_reg["qualified_count"]
+    deal_reg_total = approved_count + qualified_count
+    stalled_count = len(stalled)
     approved_rows = deal_reg["approved_not_qualified"]
 
     return f"""<!DOCTYPE html>
@@ -344,7 +348,7 @@ def build_html_report(deal_reg, stalled, now):
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Weekly RevOps Update — {today}</title>
+<title>Weekly Channel Update — {today}</title>
 <style>
   :root {{
     --bg: #f4f6f8;
@@ -383,42 +387,54 @@ def build_html_report(deal_reg, stalled, now):
     padding: 28px 20px 48px;
   }}
   .masthead {{
-    background: var(--header);
-    color: #fff;
-    border-radius: 12px;
-    padding: 22px 26px 20px;
-    margin-bottom: 18px;
+    border-bottom: 1px solid var(--line);
+    padding: 4px 0 16px;
+    margin-bottom: 20px;
   }}
   .masthead h1 {{
     margin: 0 0 4px;
-    font-size: 22px;
-    font-weight: 650;
-    letter-spacing: -0.02em;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--ink);
   }}
   .masthead .date {{
     margin: 0;
-    color: #b8c4d4;
+    color: var(--muted);
     font-size: 13px;
   }}
   .summary {{
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 14px 18px;
+    border-bottom: 1px solid var(--line);
+    padding: 0 0 18px;
     margin-bottom: 22px;
     display: flex;
     flex-wrap: wrap;
-    gap: 8px 28px;
-    align-items: center;
+    gap: 6px 28px;
+    align-items: baseline;
   }}
-  .summary p {{
+  .stats {{
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }}
+  .stat-line {{
     margin: 0;
+    font-size: 14px;
+    font-weight: 400;
     color: var(--ink);
-    font-size: 14.5px;
   }}
-  .summary strong {{ font-weight: 650; }}
+  .stat-num {{
+    font-weight: 600;
+    font-size: 15px;
+  }}
+  .stat-flag {{ color: var(--warn); }}
+  .stat-ok {{ color: var(--ok); }}
+  .stat-detail {{
+    color: var(--muted);
+    font-weight: 400;
+  }}
   .legend {{
     margin-left: auto;
+    align-self: center;
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
@@ -435,7 +451,7 @@ def build_html_report(deal_reg, stalled, now):
   h2 {{
     margin: 0 0 10px;
     font-size: 15px;
-    font-weight: 650;
+    font-weight: 600;
     letter-spacing: 0.01em;
   }}
   .section {{ margin-bottom: 26px; }}
@@ -460,8 +476,8 @@ def build_html_report(deal_reg, stalled, now):
     background: #f7f9fb;
     color: #3d4d5c;
     font-size: 11px;
-    font-weight: 650;
-    letter-spacing: 0.04em;
+    font-weight: 600;
+    letter-spacing: 0.03em;
     text-transform: uppercase;
     white-space: nowrap;
     position: sticky;
@@ -480,9 +496,6 @@ def build_html_report(deal_reg, stalled, now):
     font-weight: 600;
   }}
   .deal-link:hover {{ text-decoration: underline; }}
-  tr.row-watch td:first-child {{ box-shadow: inset 3px 0 0 var(--watch-bar); }}
-  tr.row-warn td:first-child {{ box-shadow: inset 3px 0 0 var(--warn-bar); }}
-  tr.row-critical td:first-child {{ box-shadow: inset 3px 0 0 var(--crit-bar); }}
   tr.row-watch {{ background: var(--watch-bg); }}
   tr.row-warn {{ background: var(--warn-bg); }}
   tr.row-critical {{ background: var(--crit-bg); }}
@@ -497,7 +510,7 @@ def build_html_report(deal_reg, stalled, now):
     padding: 1px 7px;
     border-radius: 999px;
     font-variant-numeric: tabular-nums;
-    font-weight: 650;
+    font-weight: 600;
     font-size: 12px;
     text-align: center;
   }}
@@ -523,20 +536,22 @@ def build_html_report(deal_reg, stalled, now):
   }}
   .callout h2 {{ margin-bottom: 6px; }}
   .callout p {{ margin: 0; color: #334155; }}
-  .callout a {{ color: var(--accent); font-weight: 650; text-decoration: none; }}
+  .callout a {{ color: var(--accent); font-weight: 600; text-decoration: none; }}
   .callout a:hover {{ text-decoration: underline; }}
 </style>
 </head>
 <body>
   <div class="page">
     <header class="masthead">
-      <h1>Weekly RevOps Update</h1>
+      <h1>Weekly Channel Update</h1>
       <p class="date">{today}</p>
     </header>
 
     <div class="summary">
-      <p><strong>{approved_count}</strong> Approved vs <strong>{qualified_count}</strong> Qualified deal regs</p>
-      <p><strong>{len(stalled)}</strong> stalled channel deals (&gt;{STALLED_THRESHOLD_DAYS} days in stage)</p>
+      <div class="stats">
+        <p class="stat-line"><span class="stat-num stat-ok">{deal_reg_total}</span> deal regs <span class="stat-detail">— {approved_count} approved, {qualified_count} qualified</span></p>
+        <p class="stat-line"><span class="stat-num stat-flag">{stalled_count}</span> stalled deals <span class="stat-detail">— more than {STALLED_THRESHOLD_DAYS} days in stage</span></p>
+      </div>
       <div class="legend" aria-label="Urgency legend">
         <span><i class="dot dot-watch"></i> 14–29d</span>
         <span><i class="dot dot-warn"></i> 30–89d</span>
@@ -545,7 +560,7 @@ def build_html_report(deal_reg, stalled, now):
     </div>
 
     <section class="section">
-      <h2>Deal Regs: Approved, Not Yet Qualified</h2>
+      <h2>Deal Regs: Approved, Not Qualified</h2>
       <div class="table-wrap">
         <table>
           <thead>
@@ -619,10 +634,12 @@ def main():
     stalled = get_stalled_channel_deals()
     report = build_html_report(deal_reg, stalled, now)
 
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
     filename = f"channelops_report_{now.strftime('%Y-%m-%d')}.html"
-    with open(filename, "w", encoding="utf-8") as f:
+    filepath = os.path.join(OUTPUT_DIR, filename)
+    with open(filepath, "w", encoding="utf-8") as f:
         f.write(report)
-    print(f"Wrote {filename}. Open and review it before manually posting to Slack.")
+    print(f"Wrote {filepath}. Open and review it before manually posting to Slack.")
 
 
 if __name__ == "__main__":
