@@ -3,3 +3,4 @@ venv/
 __pycache__/
 *.pyc
 weekly_report_output.txt
+output/
