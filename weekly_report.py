@@ -628,10 +628,16 @@ def post_to_slack(message):
 # Main
 # ---------------------------------------------------------------------------
 
+def exclude_approved_deal_regs(stalled, deal_reg):
+    """Drop stalled deals already listed in Approved, Not Qualified so the two tables don't overlap."""
+    approved_ids = {r["id"] for r in deal_reg["approved_not_qualified"]}
+    return [r for r in stalled if r["id"] not in approved_ids]
+
+
 def main():
     now = datetime.now()
     deal_reg = get_deal_reg_report()
-    stalled = get_stalled_channel_deals()
+    stalled = exclude_approved_deal_regs(get_stalled_channel_deals(), deal_reg)
     report = build_html_report(deal_reg, stalled, now)
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
