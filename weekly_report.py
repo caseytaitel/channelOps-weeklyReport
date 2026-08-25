@@ -104,23 +104,45 @@ def hubspot_search_deals(filter_groups, properties, limit=200):
 
 
 def get_owner_name(owner_id):
-    """Resolve a hubspot_owner_id to a display name, with caching."""
+    """Resolve a hubspot_owner_id to a display name, with caching.
+
+    Archived owners 404 on the default endpoint. Retry with archived=true so
+    deactivated reps still show a real name (e.g. Leo Clougherty) instead of
+    "Owner {id}".
+    """
     if not owner_id:
         return "Unassigned"
     if owner_id in _owner_cache:
         return _owner_cache[owner_id]
+
+    def _display_name(data):
+        return (
+            f"{data.get('firstName', '')} {data.get('lastName', '')}".strip()
+            or data.get("email")
+            or f"Owner {owner_id}"
+        )
+
     resp = requests.get(
         f"{HUBSPOT_API}/crm/v3/owners/{owner_id}",
         headers=HEADERS,
         timeout=30,
     )
-    if resp.status_code != 200:
-        _owner_cache[owner_id] = f"Owner {owner_id}"
+    if resp.status_code == 200:
+        _owner_cache[owner_id] = _display_name(resp.json())
         return _owner_cache[owner_id]
-    data = resp.json()
-    name = f"{data.get('firstName', '')} {data.get('lastName', '')}".strip() or data.get("email", owner_id)
-    _owner_cache[owner_id] = name
-    return name
+
+    archived = requests.get(
+        f"{HUBSPOT_API}/crm/v3/owners/{owner_id}",
+        headers=HEADERS,
+        params={"archived": "true"},
+        timeout=30,
+    )
+    if archived.status_code == 200:
+        _owner_cache[owner_id] = _display_name(archived.json())
+        return _owner_cache[owner_id]
+
+    _owner_cache[owner_id] = f"Owner {owner_id}"
+    return _owner_cache[owner_id]
 
 
 def days_since(date_str):
