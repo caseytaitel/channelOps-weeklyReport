@@ -2,7 +2,6 @@ venv/
 .env.local
 __pycache__/
 *.pyc
-weekly_report_output.txt
 output/
 logs/
 run_weekly_report.bat
