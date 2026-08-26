@@ -2,12 +2,13 @@
 """
 Weekly RevOps report for Isaac.
 
-Pulls from HubSpot:
-  1. Deal Regs: Approved vs Qualified counts + table of Approved-not-yet-Qualified deals
-  2. Stalled channel deals (Deal Reg / Discovery / Qualification, partner known, >14 days in stage)
-  3. Static links + reminders for Resellers hygiene and Meeting hygiene (no API pull possible
-     for these two - see chat history: HubSpot has no API for saved "views", only for Lists,
-     and these are views, not lists)
+Pulls all open Channel deals from HubSpot (partner known, not Direct), then
+presents two action lists:
+  1. Unqualified Deal Regs — Approved, not Qualified, >14 days since approval
+  2. Stalled deals — every other open Channel deal, >30 days in current stage
+     (any open stage)
+Plus static links for Resellers hygiene and Meeting hygiene (no API pull
+possible for saved HubSpot views).
 
 USAGE
   1. Set env vars (via .env.local in the project root):
@@ -24,11 +25,7 @@ from datetime import datetime
 import requests
 
 from report_config import OUTPUT_DIR, SLACK_WEBHOOK_URL
-from report_data import (
-    exclude_approved_deal_regs,
-    get_deal_reg_report,
-    get_stalled_channel_deals,
-)
+from report_data import get_channel_report
 from report_html import build_html_report
 
 
@@ -41,12 +38,11 @@ def post_to_slack(message):
 def main():
     now = datetime.now()
     try:
-        deal_reg = get_deal_reg_report()
-        stalled = exclude_approved_deal_regs(get_stalled_channel_deals(), deal_reg)
+        report_data = get_channel_report(now)
     except requests.RequestException as e:
         sys.exit(f"ERROR: HubSpot request failed: {e}")
 
-    report = build_html_report(deal_reg, stalled, now)
+    report = build_html_report(report_data, now)
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     filename = f"channelops_report_{now.strftime('%Y-%m-%d')}.html"

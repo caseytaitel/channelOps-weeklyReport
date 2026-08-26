@@ -2,9 +2,10 @@
 
 import requests
 
-from report_config import HEADERS, HUBSPOT_API
+from report_config import FALLBACK_STAGE_LABELS, HEADERS, HUBSPOT_API
 
 _owner_cache = {}
+_stage_label_cache = None
 
 
 def hubspot_search_deals(filter_groups, properties, limit=200):
@@ -74,3 +75,32 @@ def get_owner_name(owner_id):
 
     _owner_cache[owner_id] = f"Owner {owner_id}"
     return _owner_cache[owner_id]
+
+
+def get_stage_labels():
+    """Map dealstage ids to labels across all deal pipelines.
+
+    Falls back to FALLBACK_STAGE_LABELS if the pipelines endpoint is unavailable.
+    """
+    global _stage_label_cache
+    if _stage_label_cache is not None:
+        return _stage_label_cache
+
+    labels = dict(FALLBACK_STAGE_LABELS)
+    try:
+        resp = requests.get(
+            f"{HUBSPOT_API}/crm/v3/pipelines/deals",
+            headers=HEADERS,
+            timeout=30,
+        )
+        resp.raise_for_status()
+        for pipeline in resp.json().get("results", []):
+            for stage in pipeline.get("stages", []):
+                stage_id = stage.get("id")
+                if stage_id:
+                    labels[stage_id] = stage.get("label") or stage_id
+    except requests.RequestException:
+        pass
+
+    _stage_label_cache = labels
+    return labels
