@@ -42,13 +42,11 @@ def _days_badge(days):
     if days is None:
         return '<span class="badge badge-unknown">—</span>'
     cls = _urgency_class(days)
-    if not cls:
-        return f"<span>{days}</span>"
     badge = {
         "row-critical": "badge-critical",
         "row-warn": "badge-warn",
         "row-mild": "badge-mild",
-    }[cls]
+    }.get(cls, "badge-plain")
     return f'<span class="badge {badge}">{days}</span>'
 
 
@@ -126,7 +124,17 @@ def _stalled_rows(rows):
 def _stalled_table(rows):
     return (
         '<div class="table-wrap">\n'
-        "        <table>\n"
+        '        <table class="table-stalled">\n'
+        "          <colgroup>\n"
+        '            <col class="col-deal">\n'
+        '            <col class="col-stage">\n'
+        '            <col class="col-days">\n'
+        '            <col class="col-close">\n'
+        '            <col class="col-owner">\n'
+        '            <col class="col-type">\n'
+        '            <col class="col-partner">\n'
+        '            <col class="col-email">\n'
+        "          </colgroup>\n"
         "          <thead>\n"
         "            <tr>\n"
         "              <th>Deal Name</th>\n"
@@ -364,11 +372,31 @@ def build_html_report(report, now):
     border-collapse: collapse;
     font-size: 13px;
   }}
+  .table-stalled {{
+    table-layout: fixed;
+  }}
+  .table-stalled .col-deal {{ width: 20%; }}
+  .table-stalled .col-stage {{ width: 12%; }}
+  .table-stalled .col-days {{ width: 10%; }}
+  .table-stalled .col-close {{ width: 10%; }}
+  .table-stalled .col-owner {{ width: 11%; }}
+  .table-stalled .col-type {{ width: 12%; }}
+  .table-stalled .col-partner {{ width: 12%; }}
+  .table-stalled .col-email {{ width: 13%; }}
   th, td {{
     padding: 8px 12px;
     text-align: left;
     vertical-align: top;
     border-bottom: 1px solid var(--line);
+  }}
+  .table-stalled th {{
+    white-space: normal;
+  }}
+  .table-stalled td {{
+    overflow-wrap: break-word;
+  }}
+  .table-stalled td:last-child {{
+    overflow-wrap: anywhere;
   }}
   th {{
     background: #f7f9fb;
@@ -386,7 +414,10 @@ def build_html_report(report, now):
   tbody tr.row-mild:hover td {{ background: #feeda9; }}
   tbody tr.row-warn:hover td {{ background: #ffe4cc; }}
   tbody tr.row-critical:hover td {{ background: #ffe4e6; }}
-  .num {{ white-space: nowrap; }}
+  .num {{
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }}
   .nowrap {{ white-space: nowrap; }}
   .deal-link {{
     color: var(--accent);
@@ -411,6 +442,11 @@ def build_html_report(report, now):
     font-weight: 600;
     font-size: 12px;
     text-align: center;
+  }}
+  .badge-plain {{
+    background: transparent;
+    color: inherit;
+    font-weight: 400;
   }}
   .badge-mild {{ background: #feeda9; color: var(--mild); }}
   .badge-warn {{ background: #fed7aa; color: var(--warn); }}
