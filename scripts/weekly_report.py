@@ -10,12 +10,11 @@ Pulls from HubSpot:
      and these are views, not lists)
 
 USAGE
-  1. pip install -r requirements.txt
-  2. Set env vars (via .env.local):
+  1. Set env vars (via .env.local in the project root):
        HUBSPOT_TOKEN        - HubSpot private app access token (scopes: crm.objects.deals.read,
                                crm.objects.owners.read)
-  3. Run: python weekly_report.py
-  4. Open output/channelops_report_YYYY-MM-DD.html, review, then drag into Slack.
+  2. From the project root: python scripts/weekly_report.py
+  3. Open output/channelops_report_YYYY-MM-DD.html, review, then drag into Slack.
 """
 
 import os
